@@ -14,45 +14,82 @@
  * limitations under the License.
  *@
 
-@import services .Country
+@import services.Country
 @import views.html.helper._
 
 @(form: Form[_], field: String, label: String, hintText: Option[String], emptySelectValue: String, countries: List[Country], args: (Symbol, Any)*)(implicit messages: Messages)
 
-@elements = @{
-    FieldElements(form(field).id, form(field), null, args.toMap, messages)
-}
-@allErrors = @{
-    elements.errors ++ args.flatMap {
-        case ('otherErrors, otherErrors: Seq[_]) => otherErrors.map(_.toString)
-        case _ => Seq.empty
+    @elements = @{
+        FieldElements(form(field).id, form(field), null, args.toMap, messages)
     }
-}
 
-@selectedValue = @{ form(field).value match { case Some(x) => x case None => "" case x => x }}
-
-<div id="@field-country-outer" class="form-group @if(allErrors.nonEmpty) {form-group-error}">
-    <label id="@(field)-label" for="@field" class="form-label-bold">
-        @messages(label)
-
-        @if(allErrors.nonEmpty) {
-            @allErrors.map { error => <span class="error-message">@Messages(error)</span> }
+    @allErrors = @{
+        elements.errors ++ args.flatMap {
+            case ('otherErrors, otherErrors: Seq[_]) => otherErrors.map(_.toString)
+            case _ => Seq.empty
         }
-        @if( hintText.isDefined ) { <span class="form-hint"
-        id="@(field)-hint">@hintText.get</span> }
+    }
 
-    </label>
-    <select id="@field" name="@(field)" class="form-control @if(allErrors.nonEmpty) {form-control-error}">
-        <option value="">@emptySelectValue</option>
-        @for(option <- countries.map(c => (c.countryCode, c.countryName))) {
-            <option id="@field-@option._1"
-            value="@option._1"
-                @if(selectedValue==option._1){selected="selected"}>@option._2</option>
+    @selectedValue = @{
+        form(field).value match {
+            case Some(x) => x
+            case None => ""
+            case x => x
         }
-    </select>
-</div>
+    }
+
+    <div id="@field-country-outer" class="form-group @if(allErrors.nonEmpty) {form-group-error}">
+        <label id="@(field)-label" for="@field" class="form-label-bold">
+            @messages(label)
+
+            @if(allErrors.nonEmpty) {
+                @allErrors.map { error => <span class="error-message">@Messages(error)</span> }
+            }
+            @if(hintText.isDefined) {
+                <span class="form-hint"
+                id="@(field)-hint">@hintText.get</span>
+            }
+
+        </label>
+        <select id="@field" name="@(field)" class="form-control @if(allErrors.nonEmpty) {form-control-error}">
+            <option value="">@emptySelectValue</option>
+            @for(option <- countries.map(c => (c.countryCode, c.countryName))) {
+                <option id="@field-@option._1"
+                value="@option._1"
+                    @if(selectedValue == option._1) {
+                        selected="selected"}>@option._2</option>
+            }
+        </select>
+    </div>
 
     <script type="text/javascript">
-        initialiseSelect("@(field)");
+    (function () {
+        var selectElements = document.getElementsByTagName('select');
+        var selectElement = selectElements[selectElements.length - 1]
+        
+
+        openregisterLocationPicker({
+            defaultValue: '',
+            selectElement: selectElement,
+            url: '@routes.Assets.versioned("javascripts/location-autocomplete-graph.json")'
+        })
+
+        var inputElement = document.getElementsByClassName('autocomplete__input')
+        inputElement = inputElement[inputElement.length - 1];
+        inputElement.setAttribute('autocomplete', 'false' + selectElements.length);
+
+        if (selectElement.classList.contains("form-control-error")) {
+
+            inputElement.classList.add("form-control-error");
+        }
+        
+        
+        var inputs = document.getElementsByTagName('input')
+        inputs[inputs.length - 1].addEventListener("change", function() {
+            if (this.value.length === 0) {
+                selectElement.value = false;
+            }     
+        });
+    }())
     </script>
 
