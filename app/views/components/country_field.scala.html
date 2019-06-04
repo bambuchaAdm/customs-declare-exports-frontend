@@ -16,6 +16,7 @@
 
 @import services.Country
 @import views.html.helper._
+@import play.api.libs.json._
 
 @(form: Form[_], field: String, label: String, hintText: Option[String], emptySelectValue: String, countries: List[Country], args: (Symbol, Any)*)(implicit messages: Messages)
 
@@ -82,13 +83,13 @@
 
             inputElement.classList.add("form-control-error");
         }
-        
-        
+
+        var cs = "@(countries.map("|" + _.countryName + "|").mkString)";
         var inputs = document.getElementsByTagName('input')
-        inputs[inputs.length - 1].addEventListener("change", function() {
-            if (this.value.length === 0) {
-                selectElement.value = false;
-            }
+        inputs[inputs.length - 1].addEventListener("change", function () {
+        if (this.value.length === 0 || !cs.includes("|" + this.value + "|")) {
+            selectElement.value = false;
+        }
         });
     }())
     </script>
