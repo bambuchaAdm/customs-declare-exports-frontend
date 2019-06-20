@@ -22,6 +22,7 @@ import controllers.util.CacheIdGenerator.cacheId
 import forms.declaration.DispatchLocation
 import forms.declaration.DispatchLocation.AllowedDispatchLocations
 import javax.inject.Inject
+import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -37,9 +38,13 @@ class DispatchLocationPageController @Inject()(
   customsCacheService: CustomsCacheService,
   mcc: MessagesControllerComponents
 )(implicit appConfig: AppConfig, ec: ExecutionContext)
-    extends FrontendController(mcc) with I18nSupport {
+    extends FrontendController(mcc) with I18nSupport with DeclarationIdAware {
+  
+  val logger = Logger(this.getClass)
 
   def displayPage(): Action[AnyContent] = (authenticate andThen journeyType).async { implicit request =>
+    logger.debug(s"The declaration id in the session is: $declarationId")
+    
     customsCacheService
       .fetchAndGetEntry[DispatchLocation](cacheId, DispatchLocation.formId)
       .map {

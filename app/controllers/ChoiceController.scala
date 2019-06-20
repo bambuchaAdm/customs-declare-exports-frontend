@@ -16,6 +16,7 @@
 
 package controllers
 
+import base.DeclarationIDGenerator
 import config.AppConfig
 import controllers.actions.AuthAction
 import controllers.util.CacheIdGenerator.eoriCacheId
@@ -36,6 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ChoiceController @Inject()(
   authenticate: AuthAction,
   customsCacheService: CustomsCacheService,
+  declarationIdGenerator: DeclarationIDGenerator,
   errorHandler: ErrorHandler,
   mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
@@ -57,7 +59,9 @@ class ChoiceController @Inject()(
           customsCacheService.cache[Choice](eoriCacheId, choiceId, validChoice).map { _ =>
             validChoice.value match {
               case SupplementaryDec | StandardDec =>
-                Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage())
+                Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage()).withSession {
+                  request.session + ("declarationId" -> declarationIdGenerator.generateId())
+                }
               case CancelDec =>
                 Redirect(controllers.routes.CancelDeclarationController.displayForm())
               case Submissions =>

@@ -65,6 +65,7 @@ trait CustomExportsBaseSpec
   val mockCustomsCacheService: CustomsCacheService = mock[CustomsCacheService]
   val mockNrsService: NRSService = mock[NRSService]
   val mockItemsCachingService: ItemsCachingService = mock[ItemsCachingService]
+  val mockDeclarationIDGenerator: DeclarationIDGenerator = mock[DeclarationIDGenerator]
 
   implicit val hc: HeaderCarrier =
     HeaderCarrier(
@@ -81,7 +82,8 @@ trait CustomExportsBaseSpec
       bind[CustomsDeclareExportsConnector].to(mockCustomsDeclareExportsConnector),
       bind[NrsConnector].to(mockNrsConnector),
       bind[NRSService].to(mockNrsService),
-      bind[ItemsCachingService].to(mockItemsCachingService)
+      bind[ItemsCachingService].to(mockItemsCachingService),
+      bind[DeclarationIDGenerator].to(mockDeclarationIDGenerator)
     )
     .build()
 

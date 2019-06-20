@@ -22,8 +22,9 @@ import forms.Choice._
 import helpers.views.declaration.ChoiceMessages
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, verify}
+import org.mockito.Mockito._
 import play.api.libs.json.{JsObject, JsString}
+import play.api.mvc.{Cookie, Result}
 import play.api.test.Helpers._
 
 class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
@@ -37,14 +38,15 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
 
   after {
     reset(mockCustomsCacheService)
+    reset(mockDeclarationIDGenerator)
   }
 
   "Choice Controller on GET" should {
 
     "return 200 status code" in {
-      val result = route(app, getRequest(choiceUri)).get
+      val Some(result) = route(app, getRequest(choiceUri))
 
-      status(result) must be(OK)
+      status(result) mustBe OK
     }
 
     "read item from cache and display it" in {
@@ -52,11 +54,11 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
       val cachedData = Choice("SMP")
       withCaching[Choice](Some(cachedData), Choice.choiceId)
 
-      val result = route(app, getRequest(choiceUri)).get
+      val Some(result) = route(app, getRequest(choiceUri))
       val stringResult = contentAsString(result)
 
-      status(result) must be(OK)
-      stringResult must include("value=\"SMP\" checked=\"checked\"")
+      status(result) mustBe OK
+      stringResult must include("""value="SMP" checked="checked"""")
     }
   }
 
@@ -67,18 +69,18 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
       "no value provided for choice" in {
 
         val emptyForm = JsObject(Map("" -> JsString("")))
-        val result = route(app, postRequest(choiceUri, emptyForm)).get
+        val Some(result) = route(app, postRequest(choiceUri, emptyForm))
 
-        status(result) must be(BAD_REQUEST)
+        status(result) mustBe BAD_REQUEST
         contentAsString(result) must include(messages(choiceEmpty))
       }
 
       "wrong value provided for choice" in {
 
         val wrongForm = JsObject(Map("value" -> JsString("test")))
-        val result = route(app, postRequest(choiceUri, wrongForm)).get
+        val Some(result) = route(app, postRequest(choiceUri, wrongForm))
 
-        status(result) must be(BAD_REQUEST)
+        status(result) mustBe BAD_REQUEST
         contentAsString(result) must include(messages(choiceError))
       }
     }
@@ -86,50 +88,53 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
     "save the choice data to the cache" in {
 
       val validChoiceForm = JsObject(Map("value" -> JsString("SMP")))
-      route(app, postRequest(choiceUri, validChoiceForm)).get.futureValue
+      val Some(result) = route(app, postRequest(choiceUri, validChoiceForm))
+      await(result)
 
-      verify(mockCustomsCacheService)
-        .cache[Choice](any(), ArgumentMatchers.eq(Choice.choiceId), any())(any(), any(), any())
+      verify(mockCustomsCacheService).cache[Choice](any(), ArgumentMatchers.eq(Choice.choiceId), any())(any(), any(), any())
     }
 
     "redirect to dispatch location page when 'Supplementary declaration' is selected" in {
 
       val correctForm = JsObject(Map("value" -> JsString(AllowedChoiceValues.SupplementaryDec)))
-      val result = route(app, postRequest(choiceUri, correctForm)).get
-      val header = result.futureValue.header
+      val Some(result) = route(app, postRequest(choiceUri, correctForm))
 
-      status(result) must be(SEE_OTHER)
-      header.headers.get("Location") must be(Some("/customs-declare-exports/declaration/dispatch-location"))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some("/customs-declare-exports/declaration/dispatch-location")
     }
 
     "redirect to dispatch location page when 'Standard declaration' is selected" in {
 
       val correctForm = JsObject(Map("value" -> JsString(AllowedChoiceValues.StandardDec)))
-      val result = route(app, postRequest(choiceUri, correctForm)).get
-      val header = result.futureValue.header
-
-      status(result) must be(SEE_OTHER)
-      header.headers.get("Location") must be(Some("/customs-declare-exports/declaration/dispatch-location"))
+      val Some(result) = route(app, postRequest(choiceUri, correctForm))
+      
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some("/customs-declare-exports/declaration/dispatch-location")
     }
 
     "redirect to cancel declaration page when 'Cancel declaration' is selected" in {
 
       val correctForm = JsObject(Map("value" -> JsString(AllowedChoiceValues.CancelDec)))
-      val result = route(app, postRequest(choiceUri, correctForm)).get
-      val header = result.futureValue.header
+      val Some(result) = route(app, postRequest(choiceUri, correctForm))
 
-      status(result) must be(SEE_OTHER)
-      header.headers.get("Location") must be(Some("/customs-declare-exports/cancel-declaration"))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some("/customs-declare-exports/cancel-declaration")
     }
 
     "redirect to submissions page when 'View recent declarations' is selected" in {
 
       val correctForm = JsObject(Map("value" -> JsString(AllowedChoiceValues.Submissions)))
       val result = route(app, postRequest(choiceUri, correctForm)).get
-      val header = result.futureValue.header
 
-      status(result) must be(SEE_OTHER)
-      header.headers.get("Location") must be(Some("/customs-declare-exports/submissions"))
+      status(result) mustBe SEE_OTHER
+      redirectLocation(result) mustBe Some("/customs-declare-exports/submissions")
+    }
+
+    "store a declaration id in the session" in {
+      val expectedDeclarationId = "declaration-ABC-123"
+      when(mockDeclarationIDGenerator.generateId()).thenReturn(expectedDeclarationId)
+      val validChoiceForm = JsObject(Map("value" -> JsString("SMP")))
+      val Some(result) = route(app, postRequest(choiceUri, validChoiceForm))
     }
   }
 }
