@@ -17,6 +17,7 @@
 package controllers
 
 import base.CustomExportsBaseSpec
+import controllers.declaration.DeclarationId
 import forms.Choice
 import forms.Choice._
 import helpers.views.declaration.ChoiceMessages
@@ -24,7 +25,6 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import play.api.libs.json.{JsObject, JsString}
-import play.api.mvc.{Cookie, Result}
 import play.api.test.Helpers._
 
 class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
@@ -37,8 +37,7 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
   }
 
   after {
-    reset(mockCustomsCacheService)
-    reset(mockDeclarationIDGenerator)
+    reset(mockCustomsCacheService, mockDeclarationIDGenerator, mockDeclarationIDStore)
   }
 
   "Choice Controller on GET" should {
@@ -130,11 +129,17 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
       redirectLocation(result) mustBe Some("/customs-declare-exports/submissions")
     }
 
-    "store a declaration id in the session" in {
-      val expectedDeclarationId = "declaration-ABC-123"
-      when(mockDeclarationIDGenerator.generateId()).thenReturn(expectedDeclarationId)
+    "store a declaration id" in {
+      val expectedDeclarationId = DeclarationId("declaration-ABC-123")
+      when(mockDeclarationIDGenerator.generateId).thenReturn(expectedDeclarationId)
+      when(mockDeclarationIDStore.save(any())).thenReturn(true)
+      
       val validChoiceForm = JsObject(Map("value" -> JsString("SMP")))
+      
       val Some(result) = route(app, postRequest(choiceUri, validChoiceForm))
+      await(result)
+      
+      verify(mockDeclarationIDStore).save(expectedDeclarationId)
     }
   }
 }

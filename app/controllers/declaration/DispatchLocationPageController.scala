@@ -26,7 +26,7 @@ import play.api.Logger
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
-import services.CustomsCacheService
+import services.{CustomsCacheService, DeclarationIDStore}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import views.html.declaration.dispatch_location
 
@@ -36,14 +36,15 @@ class DispatchLocationPageController @Inject()(
   authenticate: AuthAction,
   journeyType: JourneyAction,
   customsCacheService: CustomsCacheService,
+  declarationIdStore: DeclarationIDStore,
   mcc: MessagesControllerComponents
-)(implicit appConfig: AppConfig, ec: ExecutionContext)
-    extends FrontendController(mcc) with I18nSupport with DeclarationIdAware {
+)(implicit appConfig: AppConfig, ec: ExecutionContext) extends { val store = declarationIdStore}
+  with FrontendController(mcc) with I18nSupport with DeclarationIdAware {
   
   val logger = Logger(this.getClass)
 
   def displayPage(): Action[AnyContent] = (authenticate andThen journeyType).async { implicit request =>
-    logger.debug(s"The declaration id in the session is: $declarationId")
+    logger.debug(s"The declaration id is: $declarationId")
     
     customsCacheService
       .fetchAndGetEntry[DispatchLocation](cacheId, DispatchLocation.formId)

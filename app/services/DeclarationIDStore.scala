@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package base
-
-import java.util.UUID
+package services
 
 import controllers.declaration.DeclarationId
 import javax.inject.Singleton
+import uk.gov.hmrc.http.logging.SessionId
 
 @Singleton
-class DeclarationIDGenerator {
-  def generateId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
+class DeclarationIDStore {
+  def save(id: DeclarationId): Boolean = true
+  def get(sessionId: SessionId): Option[DeclarationId] = None
 }

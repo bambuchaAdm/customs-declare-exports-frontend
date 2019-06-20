@@ -16,13 +16,12 @@
 
 package controllers.declaration
 
-import play.api.mvc.{AnyContent, Request}
+import services.DeclarationIDStore
+import uk.gov.hmrc.http.HeaderCarrier
 
 case class DeclarationId(id: String)
 
 trait DeclarationIdAware {
-  
-  def declarationId(implicit request: Request[AnyContent]): Option[DeclarationId] =
-    request.session.get("declarationId").map(DeclarationId)
-  
+  val store: DeclarationIDStore
+  def declarationId(implicit hc: HeaderCarrier): Option[DeclarationId] = hc.sessionId flatMap store.get
 }

@@ -47,7 +47,7 @@ import play.api.mvc._
 import play.api.test.FakeRequest
 import play.filters.csrf.{CSRFConfig, CSRFConfigProvider, CSRFFilter}
 import play.api.test.CSRFTokenHelper.addCSRFToken
-import services._
+import services.{DeclarationIDStore, _}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.http.cache.client.CacheMap
 import uk.gov.hmrc.http.logging.Authorization
@@ -66,6 +66,7 @@ trait CustomExportsBaseSpec
   val mockNrsService: NRSService = mock[NRSService]
   val mockItemsCachingService: ItemsCachingService = mock[ItemsCachingService]
   val mockDeclarationIDGenerator: DeclarationIDGenerator = mock[DeclarationIDGenerator]
+  val mockDeclarationIDStore: DeclarationIDStore = mock[DeclarationIDStore]
 
   implicit val hc: HeaderCarrier =
     HeaderCarrier(
@@ -83,7 +84,8 @@ trait CustomExportsBaseSpec
       bind[NrsConnector].to(mockNrsConnector),
       bind[NRSService].to(mockNrsService),
       bind[ItemsCachingService].to(mockItemsCachingService),
-      bind[DeclarationIDGenerator].to(mockDeclarationIDGenerator)
+      bind[DeclarationIDGenerator].to(mockDeclarationIDGenerator),
+      bind[DeclarationIDStore].to(mockDeclarationIDStore)
     )
     .build()
 

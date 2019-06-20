@@ -28,18 +28,19 @@ import javax.inject.Inject
 import play.api.data.Form
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import services.CustomsCacheService
+import services.{CustomsCacheService, DeclarationIDStore}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import views.html.choice_page
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChoiceController @Inject()(
-  authenticate: AuthAction,
-  customsCacheService: CustomsCacheService,
-  declarationIdGenerator: DeclarationIDGenerator,
-  errorHandler: ErrorHandler,
-  mcc: MessagesControllerComponents
+                                  authenticate: AuthAction,
+                                  customsCacheService: CustomsCacheService,
+                                  declarationIdGenerator: DeclarationIDGenerator,
+                                  declarationIdStore: DeclarationIDStore,
+                                  errorHandler: ErrorHandler,
+                                  mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends FrontendController(mcc) with I18nSupport {
 
@@ -59,9 +60,8 @@ class ChoiceController @Inject()(
           customsCacheService.cache[Choice](eoriCacheId, choiceId, validChoice).map { _ =>
             validChoice.value match {
               case SupplementaryDec | StandardDec =>
-                Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage()).withSession {
-                  request.session + ("declarationId" -> declarationIdGenerator.generateId())
-                }
+                declarationIdStore.save(declarationIdGenerator.generateId)
+                Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage())
               case CancelDec =>
                 Redirect(controllers.routes.CancelDeclarationController.displayForm())
               case Submissions =>
