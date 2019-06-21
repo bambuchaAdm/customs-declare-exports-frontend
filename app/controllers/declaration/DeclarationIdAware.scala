@@ -18,10 +18,25 @@ package controllers.declaration
 
 import services.DeclarationIDStore
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.logging.SessionId
 
-case class DeclarationId(id: String)
+import cats.instances.future._
+import cats.data.OptionT
 
+import scala.concurrent.{ExecutionContext, Future}
+
+case class DeclarationId(sessionId: SessionId, declarationId: String)
+
+//use action refiner ??
 trait DeclarationIdAware {
   val store: DeclarationIDStore
-  def declarationId(implicit hc: HeaderCarrier): Option[DeclarationId] = hc.sessionId flatMap store.get
+
+  def declarationId(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[DeclarationId]] = {
+    val f = for {
+      sessionId <- OptionT.fromOption(hc.sessionId)
+      decId <- OptionT(store.get(sessionId))
+    } yield decId
+    
+    f.value
+  }
 }

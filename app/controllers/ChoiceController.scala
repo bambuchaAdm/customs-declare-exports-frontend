@@ -35,12 +35,12 @@ import views.html.choice_page
 import scala.concurrent.{ExecutionContext, Future}
 
 class ChoiceController @Inject()(
-                                  authenticate: AuthAction,
-                                  customsCacheService: CustomsCacheService,
-                                  declarationIdGenerator: DeclarationIDGenerator,
-                                  declarationIdStore: DeclarationIDStore,
-                                  errorHandler: ErrorHandler,
-                                  mcc: MessagesControllerComponents
+  authenticate: AuthAction,
+  customsCacheService: CustomsCacheService,
+  declarationIdGenerator: DeclarationIDGenerator,
+  declarationIdStore: DeclarationIDStore,
+  errorHandler: ErrorHandler,
+  mcc: MessagesControllerComponents
 )(implicit ec: ExecutionContext, appConfig: AppConfig)
     extends FrontendController(mcc) with I18nSupport {
 
@@ -57,17 +57,22 @@ class ChoiceController @Inject()(
       .fold(
         (formWithErrors: Form[Choice]) => Future.successful(BadRequest(choice_page(formWithErrors))),
         validChoice =>
-          customsCacheService.cache[Choice](eoriCacheId, choiceId, validChoice).map { _ =>
+          customsCacheService.cache[Choice](eoriCacheId, choiceId, validChoice).flatMap { _ =>
             validChoice.value match {
               case SupplementaryDec | StandardDec =>
-                declarationIdStore.save(declarationIdGenerator.generateId)
-                Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage())
+                declarationIdGenerator.generateId match {
+                  case Some(declarationId) =>
+                    declarationIdStore.save(declarationId) map { _ =>
+                      Redirect(controllers.declaration.routes.DispatchLocationPageController.displayPage())
+                    }
+                  case None => errorHandler.displayErrorPage()
+                }
               case CancelDec =>
-                Redirect(controllers.routes.CancelDeclarationController.displayForm())
+                Future.successful(Redirect(controllers.routes.CancelDeclarationController.displayForm()))
               case Submissions =>
-                Redirect(controllers.routes.SubmissionsController.displayListOfSubmissions())
+                Future.successful(Redirect(controllers.routes.SubmissionsController.displayListOfSubmissions()))
               case _ =>
-                Redirect(controllers.routes.ChoiceController.displayChoiceForm())
+                Future.successful(Redirect(controllers.routes.ChoiceController.displayChoiceForm()))
             }
         }
       )

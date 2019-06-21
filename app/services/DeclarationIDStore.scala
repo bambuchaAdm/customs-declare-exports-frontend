@@ -20,8 +20,18 @@ import controllers.declaration.DeclarationId
 import javax.inject.Singleton
 import uk.gov.hmrc.http.logging.SessionId
 
+import scala.concurrent.{ExecutionContext, Future}
+
 @Singleton
 class DeclarationIDStore {
-  def save(id: DeclarationId): Boolean = true
-  def get(sessionId: SessionId): Option[DeclarationId] = None
+  var tempStore: Option[DeclarationId] = None
+
+  def save(id: DeclarationId)(implicit ec: ExecutionContext): Future[Boolean] = Future {
+    tempStore = Some(id)
+    true
+  }
+
+  def get(sessionId: SessionId)(implicit ec: ExecutionContext): Future[Option[DeclarationId]] = Future {
+    tempStore find (_.sessionId == sessionId)
+  }
 }

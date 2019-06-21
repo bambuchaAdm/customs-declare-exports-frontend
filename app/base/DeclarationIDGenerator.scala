@@ -20,8 +20,10 @@ import java.util.UUID
 
 import controllers.declaration.DeclarationId
 import javax.inject.Singleton
+import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
 class DeclarationIDGenerator {
-  def generateId: DeclarationId = DeclarationId(UUID.randomUUID().toString)
+  def generateId(implicit hc: HeaderCarrier): Option[DeclarationId] =
+    hc.sessionId map (sessionId => DeclarationId(sessionId, UUID.randomUUID().toString))
 }

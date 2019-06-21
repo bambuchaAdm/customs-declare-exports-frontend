@@ -22,10 +22,14 @@ import forms.Choice
 import forms.Choice._
 import helpers.views.declaration.ChoiceMessages
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.{eq => eqTo, _}
 import org.mockito.Mockito._
 import play.api.libs.json.{JsObject, JsString}
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.logging.SessionId
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
 
@@ -34,6 +38,8 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
   before {
     authorizedUser()
     withCaching[Choice](None, Choice.choiceId)
+    when(mockDeclarationIDGenerator.generateId(any[HeaderCarrier])).thenReturn(Some(DeclarationId(SessionId("my-session-id"), "default-declaration-id")))
+    when(mockDeclarationIDStore.save(any[DeclarationId])(any[ExecutionContext])).thenReturn(Future.successful(true))
   }
 
   after {
@@ -130,16 +136,17 @@ class ChoiceControllerSpec extends CustomExportsBaseSpec with ChoiceMessages {
     }
 
     "store a declaration id" in {
-      val expectedDeclarationId = DeclarationId("declaration-ABC-123")
-      when(mockDeclarationIDGenerator.generateId).thenReturn(expectedDeclarationId)
-      when(mockDeclarationIDStore.save(any())).thenReturn(true)
+      val expectedDeclarationId = DeclarationId(SessionId("session-id-1"), "declaration-ABC-123")
+      
+      when(mockDeclarationIDGenerator.generateId(any[HeaderCarrier])).thenReturn(Some(expectedDeclarationId))
+      when(mockDeclarationIDStore.save(any[DeclarationId])(any[ExecutionContext])).thenReturn(Future.successful(true))
       
       val validChoiceForm = JsObject(Map("value" -> JsString("SMP")))
       
       val Some(result) = route(app, postRequest(choiceUri, validChoiceForm))
       await(result)
       
-      verify(mockDeclarationIDStore).save(expectedDeclarationId)
+      verify(mockDeclarationIDStore).save(eqTo(expectedDeclarationId))(any[ExecutionContext])
     }
   }
 }
