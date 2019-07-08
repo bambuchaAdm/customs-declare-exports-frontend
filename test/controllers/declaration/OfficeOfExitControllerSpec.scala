@@ -19,7 +19,7 @@ package controllers.declaration
 import base.CustomExportsBaseSpec
 import forms.Choice
 import forms.Choice.choiceId
-import forms.declaration.OfficeOfExitSupplementarySpec._
+import forms.declaration.OfficeOfExitTestData._
 import forms.declaration.officeOfExit.{OfficeOfExitForms, OfficeOfExitStandard, OfficeOfExitSupplementary}
 import helpers.views.declaration.OfficeOfExitMessages
 import play.api.libs.json.{JsObject, JsString, JsValue}

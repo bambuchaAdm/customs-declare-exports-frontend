@@ -17,7 +17,7 @@
 package services.mapping.declaration
 import forms.ChoiceSpec
 import forms.declaration.officeOfExit.{OfficeOfExitForms, OfficeOfExitStandard}
-import forms.declaration.{OfficeOfExitStandardSpec, OfficeOfExitSupplementarySpec}
+import forms.declaration.{OfficeOfExitStandardSpec, OfficeOfExitTestData}
 import org.scalatest.{Matchers, WordSpec}
 import play.api.libs.json._
 import uk.gov.hmrc.http.cache.client.CacheMap
@@ -27,7 +27,7 @@ class SpecificCircumstancesCodeBuilderSpec extends WordSpec with Matchers {
   "SpecificCircumstancesCodeBuilder" should {
     "correctly map to the WCO-DEC CircumstancesCode to null for a supplementary journey" in {
       implicit val cacheMap: CacheMap =
-        CacheMap("CacheID", Map(OfficeOfExitForms.formId -> OfficeOfExitSupplementarySpec.correctOfficeOfExitJSON))
+        CacheMap("CacheID", Map(OfficeOfExitForms.formId -> OfficeOfExitTestData.correctOfficeOfExitJSON))
       val circumstancesCode = SpecificCircumstancesCodeBuilder.build(cacheMap, ChoiceSpec.supplementaryChoice)
       circumstancesCode should be(null)
     }

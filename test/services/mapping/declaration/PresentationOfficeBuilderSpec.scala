@@ -17,7 +17,7 @@
 package services.mapping.declaration
 import forms.ChoiceSpec
 import forms.declaration.officeOfExit.OfficeOfExitForms
-import forms.declaration.{OfficeOfExitStandardSpec, OfficeOfExitSupplementarySpec}
+import forms.declaration.{OfficeOfExitStandardSpec, OfficeOfExitTestData}
 import org.scalatest.{Matchers, WordSpec}
 import uk.gov.hmrc.http.cache.client.CacheMap
 
@@ -26,7 +26,7 @@ class PresentationOfficeBuilderSpec extends WordSpec with Matchers {
   "PresentationOfficeBuilder" should {
     "correctly map to the WCO-DEC PresentationOffice to null for a supplementary journey" in {
       implicit val cacheMap: CacheMap =
-        CacheMap("CacheID", Map(OfficeOfExitForms.formId -> OfficeOfExitSupplementarySpec.correctOfficeOfExitJSON))
+        CacheMap("CacheID", Map(OfficeOfExitForms.formId -> OfficeOfExitTestData.correctOfficeOfExitJSON))
       val presentationOffice = PresentationOfficeBuilder.build(cacheMap, ChoiceSpec.supplementaryChoice)
       presentationOffice should be(null)
     }

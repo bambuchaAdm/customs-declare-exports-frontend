@@ -18,7 +18,8 @@ object AppDependencies {
     "uk.gov.hmrc" %% "auth-client" % "2.22.0-play-26",
     "ai.x" %% "play-json-extensions" % "0.30.1",
     "uk.gov.hmrc" %% "play-whitelist-filter" % "3.1.0-play-26",
-    "com.typesafe.play" %% "play-json-joda" % "2.6.10"
+    "com.typesafe.play" %% "play-json-joda" % "2.6.10",
+    "org.julienrf" % "play-json-derived-codecs_2.11" % "6.0.0"
   )
 
   val test = Seq(

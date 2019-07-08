@@ -15,20 +15,68 @@
  */
 
 package forms.declaration.officeOfExit
-import play.api.libs.json.Json
 
-case class OfficeOfExit(officeId: String, presentationOfficeId: Option[String], circumstancesCode: Option[String])
+import forms.declaration.officeOfExit.OfficeOfExitStandard.AllowedCircumstancesCodeAnswers.{no, yes}
+import julienrf.json.derived
+import play.api.data.Forms.text
+import play.api.data.{Form, Forms}
+import play.api.libs.json.Json
+import utils.validators.forms.FieldValidator._
+
+
+sealed trait OfficeOfExit {
+  val officeId: String
+}
 
 object OfficeOfExit {
-  implicit val format = Json.format[OfficeOfExit]
+  implicit val format = derived.oformat[OfficeOfExit]()
+}
 
-  def from(officeOfExitSupplementary: OfficeOfExitSupplementary): OfficeOfExit =
-    OfficeOfExit(officeOfExitSupplementary.officeId, None, None)
+case class OfficeOfExitStandard(officeId: String, presentationOfficeId: String, circumstancesCode: String) extends OfficeOfExit
 
-  def from(officeOfExitStandard: OfficeOfExitStandard): OfficeOfExit =
-    OfficeOfExit(
-      officeOfExitStandard.officeId,
-      Some(officeOfExitStandard.presentationOfficeId),
-      Some(officeOfExitStandard.circumstancesCode)
-    )
+object OfficeOfExitStandard {
+
+  implicit val format = Json.format[OfficeOfExitStandard]
+  val mapping = Forms.mapping(
+    "officeId" -> text()
+      .verifying("declaration.officeOfExit.empty", nonEmpty)
+      .verifying("declaration.officeOfExit.length", isEmpty or hasSpecificLength(8))
+      .verifying("declaration.officeOfExit.specialCharacters", isEmpty or isAlphanumeric),
+    "presentationOfficeId" -> text()
+      .verifying("standard.officeOfExit.presentationOffice.empty", nonEmpty)
+      .verifying("standard.officeOfExit.presentationOffice.length", isEmpty or hasSpecificLength(8))
+      .verifying("standard.officeOfExit.presentationOffice.specialCharacters", isEmpty or isAlphanumeric),
+    "circumstancesCode" -> text()
+      .verifying("standard.officeOfExit.circumstancesCode.empty", nonEmpty)
+      .verifying("standard.officeOfExit.circumstancesCode.error", isEmpty or isContainedIn(Seq(yes, no)))
+  )(OfficeOfExitStandard.apply)(OfficeOfExitStandard.unapply)
+
+  def adjustCircumstancesError(form: Form[OfficeOfExitStandard]): Form[OfficeOfExitStandard] = {
+    val errors = form.errors.map { error =>
+      if (error.key == "circumstancesCode" && error.message == "error.required")
+        error.copy(messages = Seq("standard.officeOfExit.circumstancesCode.empty"))
+      else error
+    }
+
+    form.copy(errors = errors)
+  }
+
+  object AllowedCircumstancesCodeAnswers {
+    val yes = "Yes"
+    val no = "No"
+  }
+}
+
+case class OfficeOfExitSupplementary(officeId: String) extends OfficeOfExit
+
+object OfficeOfExitSupplementary {
+
+  implicit val format = Json.format[OfficeOfExitSupplementary]
+
+  val mapping = Forms.mapping(
+    "officeId" -> text()
+      .verifying("declaration.officeOfExit.empty", nonEmpty)
+      .verifying("declaration.officeOfExit.length", isEmpty or hasSpecificLength(8))
+      .verifying("declaration.officeOfExit.specialCharacters", isEmpty or isAlphanumeric)
+  )(OfficeOfExitSupplementary.apply)(OfficeOfExitSupplementary.unapply)
 }

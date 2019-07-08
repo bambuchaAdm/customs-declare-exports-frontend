@@ -26,7 +26,7 @@ import forms.declaration.DispatchLocationSpec._
 import forms.declaration.ExporterDetailsSpec._
 import forms.declaration.   GoodsLocationTestData._
 import forms.declaration.NatureOfTransactionSpec._
-import forms.declaration.OfficeOfExitSupplementarySpec._
+import forms.declaration.OfficeOfExitTestData._
 import forms.declaration.RepresentativeDetailsSpec._
 import forms.declaration.TotalNumberOfItemsSpec._
 import forms.declaration.TransportInformationContainerSpec.{
@@ -53,7 +53,7 @@ import services.ExportsItemsCacheIds
 import services.mapping.governmentagencygoodsitem.GovernmentAgencyGoodsItemBuilderSpec
 import uk.gov.hmrc.http.cache.client.CacheMap
 
-class SupplementaryDeclarationTestData extends WordSpec with MustMatchers {
+class SupplementaryDeclarationSpec extends WordSpec with MustMatchers {
   import SupplementaryDeclarationTestData._
 
   "Method apply(CacheMap)" should {
