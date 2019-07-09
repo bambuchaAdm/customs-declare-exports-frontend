@@ -19,7 +19,11 @@ package forms.declaration
 import play.api.data.Forms.{optional, text}
 import play.api.data.{Form, Forms, Mapping}
 import play.api.libs.json.Json
+import typedcaching.model.{Cacheable, ExportsCacheModel}
 import utils.validators.forms.FieldValidator.isContainedIn
+import typedcaching.persistance.DeclarationStore._
+
+
 
 case class DispatchLocation(
   dispatchLocation: String // 2 upper case alphabetic characters
@@ -27,6 +31,23 @@ case class DispatchLocation(
 
 object DispatchLocation {
   implicit val format = Json.format[DispatchLocation]
+  
+  implicit object CacheableDispatchLocation extends Cacheable[DispatchLocation] {
+    def save(id: String, dl: DispatchLocation): DispatchLocation = {
+      findInCache(id) match {
+        case Right(exportsCacheModel) => storeInCache(exportsCacheModel.copy(dispatchLocation = Some(dl)))
+        case Left(_) => storeInCache(ExportsCacheModel(sessionId = id, dispatchLocation = Some(dl)))
+      }
+      dl
+    }
+
+    def find(id: String): Either[String, DispatchLocation] = {
+      findInCache(id) match {
+        case Right(ExportsCacheModel(_, _, Some(dispatchLocation))) => Right(dispatchLocation)
+        case _ => Left("Dispatch location not found")
+      }
+    }
+  }
 
   private val allowedValues = Set(AllowedDispatchLocations.OutsideEU, AllowedDispatchLocations.SpecialFiscalTerritory)
 
