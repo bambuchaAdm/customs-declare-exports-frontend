@@ -16,11 +16,40 @@
 
 package services.mapping.goodsshipment
 import forms.Choice
+import javax.inject.Inject
 import services.cache.ExportsCacheModel
 import services.mapping.goodsshipment.consignment.ConsignmentBuilder
 import services.mapping.governmentagencygoodsitem.GovernmentAgencyGoodsItemBuilder
 import uk.gov.hmrc.http.cache.client.CacheMap
+import wco.datamodel.wco.dec_dms._2.Declaration
 import wco.datamodel.wco.dec_dms._2.Declaration.GoodsShipment
+
+class GoodsShipmentBuilder @Inject()(
+  goodsShipmentNatureOfTransactionBuilder: GoodsShipmentNatureOfTransactionBuilder,
+  consigneeBuilder: ConsigneeBuilder
+) {
+  def buildThenAdd(exportsCacheModel: ExportsCacheModel, declaration: Declaration): Unit = {
+    val goodsShipment = new GoodsShipment()
+
+    goodsShipmentNatureOfTransactionBuilder.buildThenAdd(exportsCacheModel.natureOfTransaction, goodsShipment)
+    consigneeBuilder.buildThenAdd(exportsCacheModel.parties.consigneeDetails, goodsShipment)
+    ConsignmentBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+    DestinationBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+    ExportCountryBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+    UCRBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+    WarehouseBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+    PreviousDocumentsBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+
+    exportsCacheModel.items.foreach { item =>
+      GovernmentAgencyGoodsItemBuilder.buildThenAdd(item, goodsShipment)
+    }
+
+    AEOMutualRecognitionPartiesBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
+
+    declaration.setGoodsShipment(goodsShipment)
+  }
+
+}
 
 object GoodsShipmentBuilder {
 
@@ -42,24 +71,4 @@ object GoodsShipmentBuilder {
     goodsShipment
   }
 
-  def build(exportsCacheModel: ExportsCacheModel): GoodsShipment = {
-    val goodsShipment = new GoodsShipment()
-
-    GoodsShipmentNatureOfTransactionBuilder.buildThenAdd(exportsCacheModel.natureOfTransaction, goodsShipment)
-    ConsigneeBuilder.buildThenAdd(exportsCacheModel.parties.consigneeDetails, goodsShipment)
-    ConsignmentBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-    DestinationBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-    ExportCountryBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-    UCRBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-    WarehouseBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-    PreviousDocumentsBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-
-    exportsCacheModel.items.foreach { item =>
-      GovernmentAgencyGoodsItemBuilder.buildThenAdd(item, goodsShipment)
-    }
-
-    AEOMutualRecognitionPartiesBuilder.buildThenAdd(exportsCacheModel, goodsShipment)
-
-    goodsShipment
-  }
 }

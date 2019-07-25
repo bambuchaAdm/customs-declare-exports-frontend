@@ -17,9 +17,21 @@
 package services.mapping.goodsshipment
 
 import forms.declaration.NatureOfTransaction
+import javax.inject.Inject
 import uk.gov.hmrc.http.cache.client.CacheMap
 import wco.datamodel.wco.dec_dms._2.Declaration.GoodsShipment
 import wco.datamodel.wco.declaration_ds.dms._2.GoodsShipmentTransactionNatureCodeType
+
+class GoodsShipmentNatureOfTransactionBuilder @Inject()() {
+  def buildThenAdd(data: Option[NatureOfTransaction], goodsShipment: GoodsShipment) {
+
+    data.foreach(natureOfTransaction => {
+      val natureOfTransactionWCO = new GoodsShipmentTransactionNatureCodeType()
+      natureOfTransactionWCO.setValue(natureOfTransaction.natureType)
+      goodsShipment.setTransactionNatureCode(natureOfTransactionWCO)
+    })
+  }
+}
 
 object GoodsShipmentNatureOfTransactionBuilder {
 
@@ -36,16 +48,6 @@ object GoodsShipmentNatureOfTransactionBuilder {
     natureOfTransaction.setValue(data.natureType)
 
     natureOfTransaction
-  }
-
-  def buildThenAdd(data: Option[NatureOfTransaction], goodsShipment: GoodsShipment) {
-
-    data.foreach(natureOfTransaction => {
-      val natureOfTransactionWCO = new GoodsShipmentTransactionNatureCodeType()
-      natureOfTransactionWCO.setValue(natureOfTransaction.natureType)
-      goodsShipment.setTransactionNatureCode(natureOfTransactionWCO)
-    })
-
   }
 
 }

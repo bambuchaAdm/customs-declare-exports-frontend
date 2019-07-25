@@ -24,6 +24,7 @@ import wco.datamodel.wco.declaration_ds.dms._2.{GovernmentProcedureCurrentCodeTy
 import scala.collection.JavaConverters._
 
 object GovernmentProcedureBuilder {
+
   def buildThenAdd(
     exportItem: ExportItem,
     wcoGovernmentAgencyGoodsItem: GoodsShipment.GovernmentAgencyGoodsItem

@@ -108,14 +108,16 @@ object ConsignmentCarrierBuilder {
     postcode.setValue(address.postCode)
     carrierAddress.setPostcodeID(postcode)
 
-    val countryCode = new AddressCountryCodeType
-    countryCode.setValue(
-      allCountries
-        .find(country => address.country.contains(country.countryName))
-        .map(_.countryCode)
-        .getOrElse("")
-    )
-    carrierAddress.setCountryCode(countryCode)
+    if (address.country.nonEmpty) {
+      val countryCode = new AddressCountryCodeType
+      countryCode.setValue(
+        allCountries
+          .find(country => address.country.contains(country.countryName))
+          .map(_.countryCode)
+          .getOrElse("")
+      )
+      carrierAddress.setCountryCode(countryCode)
+    }
     carrierAddress
   }
 }

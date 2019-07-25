@@ -29,8 +29,8 @@ import wco.datamodel.wco.dec_dms._2.Declaration.CurrencyExchange
 
 import scala.collection.JavaConverters._
 
-class CurrencyExchangeBuilder @Inject()() extends ModifyingBuilder[Declaration] {
-  override def buildThenAdd(model: ExportsCacheModel, declaration: Declaration): Unit = {
+class CurrencyExchangeBuilder @Inject()() {
+  def buildThenAdd(model: ExportsCacheModel, declaration: Declaration): Unit = {
     val currencyExchanges: Seq[CurrencyExchange] = model.totalNumberOfItems
       .filter(_.exchangeRate.isDefined)
       .map(createCurrencyExchange)
