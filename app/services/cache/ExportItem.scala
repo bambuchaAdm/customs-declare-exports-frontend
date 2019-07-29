@@ -38,7 +38,9 @@ case class ExportItem(
   commodityMeasure: Option[CommodityMeasure] = None,
   additionalInformation: Option[AdditionalInformationData] = None,
   documentsProducedData: Option[DocumentsProducedData] = None
-)
+) {
+    def hasPackageInformation: Boolean = packageInformation.nonEmpty
+}
 
 object ExportItem {
 

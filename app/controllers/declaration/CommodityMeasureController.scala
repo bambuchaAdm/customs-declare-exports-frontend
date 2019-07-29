@@ -47,13 +47,11 @@ class CommodityMeasureController @Inject()(
 } with FrontendController(mcc) with I18nSupport with ModelCacheable with SessionIdAware {
 
   def displayPage(itemId: String): Action[AnyContent] = (authenticate andThen journeyType).async { implicit request =>
-    exportsCacheService.getItemByIdAndSession(itemId, journeySessionId).map(_.map(_.packageInformation)).flatMap {
-      case Some(p) if p.nonEmpty =>
-        exportsCacheService.getItemByIdAndSession(itemId, journeySessionId).map(_.flatMap(_.commodityMeasure)).map {
-          case Some(data) => Ok(goodsMeasurePage(itemId, form().fill(data)))
-          case _          => Ok(goodsMeasurePage(itemId, form()))
-        }
-      case _ => Future.successful(BadRequest(goodsMeasurePage(itemId, form().withGlobalError(ADD_ONE))))
+    exportsCacheService.getItemByIdAndSession(itemId, journeySessionId).map { cache =>
+      cache.filter(_.hasPackageInformation).map { item =>
+        val payload = item.commodityMeasure.fold(form()){data => form().fill(data)}
+        Ok(goodsMeasurePage(item.id, payload))
+      }.getOrElse(Future.successful(BadRequest(goodsMeasurePage(itemId, form().withGlobalError(ADD_ONE)))))
     }
   }
 
