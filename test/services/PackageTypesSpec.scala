@@ -16,8 +16,8 @@
 
 package services
 
+import unit.base.UnitSpec
 import services.model.PackageType
-import uk.gov.hmrc.play.test.UnitSpec
 
 class PackageTypesSpec extends UnitSpec {
 
@@ -26,7 +26,7 @@ class PackageTypesSpec extends UnitSpec {
     "return package types containing commas and quotes" in {
       val somePackageTypes = PackageTypes.all.filter(_.code == "43")
 
-      somePackageTypes shouldBe List(PackageType("43", "Bag, super bulk"))
+      somePackageTypes mustBe List(PackageType("43", "Bag, super bulk"))
     }
 
     "return package types' with codes in alphabetical order of name" in {
@@ -34,7 +34,7 @@ class PackageTypesSpec extends UnitSpec {
 
       val somePackageTypes = PackageTypes.all.filter(packageType => expectedCodes.contains(packageType.code))
 
-      somePackageTypes shouldBe List(
+      somePackageTypes mustBe List(
         PackageType("43", "Bag, super bulk"),
         PackageType("ZZ", "Defined mutually"),
         PackageType("AD", "Wooden receptacle")

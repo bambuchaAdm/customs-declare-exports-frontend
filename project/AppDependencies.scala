@@ -22,8 +22,6 @@ object AppDependencies {
   )
 
   val test = Seq(
-    //TODO remove hmrctest dependency
-    "uk.gov.hmrc" %% "hmrctest" % "3.8.0-play-26" % "test",
     "org.scalatest" %% "scalatest" % "3.0.5" % "test",
     "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
     "org.pegdown" % "pegdown" % "1.6.0" % "test",
